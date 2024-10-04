@@ -61,6 +61,10 @@ app.get("/app/:name/:age", async (req, res) => {
   res.status(202).json(resData);
 });
 
+app.get("/", (req, res) => {
+  res.send("Home Page");
+});
+
 app.listen(3000, () => {
   console.log("server is Running on Port 3000");
 });
