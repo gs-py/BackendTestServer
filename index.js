@@ -44,7 +44,7 @@ app.get("/app/:name/:age", async (req, res) => {
       console.log("added to DB");
     })
     .catch((error) => {
-      console.error("Error saving user:", error.message);
+      console.error("Error saving user: dd", error.message);
     });
 
   const savedUser = await userDetails.findById(newuser._id);
