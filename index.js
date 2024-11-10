@@ -41,7 +41,7 @@ app.get("/app/:name/:age", async (req, res) => {
   await newuser
     .save()
     .then(() => {
-      console.log("added to DB");
+      console.log("added to DffdfdfB");
     })
     .catch((error) => {
       console.error("Error saving user: dd", error.message);
