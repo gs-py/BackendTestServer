@@ -1,70 +1,45 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const mongoose = require("mongoose");
 const app = express();
 app.use(cors());
+const { faker } = require("@faker-js/faker");
 
-const MongoURI = process.env.MONGO_URL;
-console.log(MongoURI);
-mongoose
-  .connect(MongoURI)
-  .then((connection) => {
-    console.log("db Connect successfully");
-    console.log(`MongoDB connected: ${connection.connection.host}`);
-  })
-  .catch((error) => {
-    console.error("connection failed", error.message);
-  });
-
-//   moongo database Scheme
-const userSchema = new mongoose.Schema({
-  name: String,
-  age: {
-    type: String,
-    required: true,
-  },
-});
-
-const userDetails = mongoose.model("Clientdetails", userSchema);
-
-// api call to add datato database
-app.get("/app/:name/:age", async (req, res) => {
-  const name = req.params.name;
-  const age = req.params.age;
-
-  const newuser = userDetails({
-    name: name,
-    age: age,
-  });
-
-  await newuser
-    .save()
-    .then(() => {
-      console.log("added to DffdfdfB");
-    })
-    .catch((error) => {
-      console.error("Error savfdfing user: dd", error.message);
-    });
-
-  const savedUser = await userDetails.findById(newuser._id);
-
-  resData = {
-    Message: "this is from thsi .get ",
-    status: 200,
-    data: {
-      id: savedUser._id,
-      name: savedUser.name,
-      age: savedUser.age,
-    },
-  };
-  res.status(202).json(resData);
+app.listen(process.env.Port, () => {
+  console.log(process.env.Port);
+  console.log(
+    `server is Running on Port : ${process.env.Port} \nURL : http://localhost:${process.env.Port}/api/fake-person?count=1`
+  );
 });
 
 app.get("/", (req, res) => {
-  res.send(" Welcome ...Home Page");
+  res.json({
+    mesaage: "welcome to my  Page",
+    about: "This is a simple homepage served via an API.",
+    links: {
+      about: "/about",
+      services: "/services",
+      contact: "/contact",
+    },
+  });
 });
 
-app.listen(3000, () => {
-  console.log("server is Running on Port 3000");
+app.get("/api/fake-person", (req, res) => {
+  const count = parseInt(req.query.count) || 1;
+  const Person = Array.from({ length: count }, () => ({
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phoneNumber: faker.phone.number(),
+    address: {
+      street: faker.location.streetAddress(),
+      city: faker.location.city(),
+      state: faker.location.state(),
+      zipCode: faker.location.zipCode(),
+    },
+    dateOfBirth: faker.date.birthdate({ min: 18, max: 65, mode: "age" }),
+    avatar: faker.image.avatar(),
+  }));
+
+  res.json(Person);
 });
