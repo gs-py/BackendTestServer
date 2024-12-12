@@ -2,7 +2,8 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const app = express();
-app.use(cors());
+app.use(cors({ origin: "*" }));
+
 const { faker } = require("@faker-js/faker");
 
 app.listen(process.env.PORT, () => {
