@@ -5,10 +5,10 @@ const app = express();
 app.use(cors());
 const { faker } = require("@faker-js/faker");
 
-app.listen(process.env.Port, () => {
-  console.log(process.env.Port);
+app.listen(process.env.PORT, () => {
+  console.log(process.env.PORT);
   console.log(
-    `server is Running on Port : ${process.env.Port} \nURL : http://localhost:${process.env.Port}/api/fake-person?count=1`
+    `server is Running on Port : ${process.env.PORT} \nURL : http://localhost:${process.env.PORT}/api/fake-person?count=1`
   );
 });
 
