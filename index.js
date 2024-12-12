@@ -16,6 +16,7 @@ mongoose
   .connect(MONGO_URI, {
     serverSelectionTimeoutMS: 10000, // 10 seconds timeout
     socketTimeoutMS: 45000, // 45 seconds socket timeout
+    retryWrites: true,
   })
   .then(() => {
     console.log("Connected to MongoDB");
@@ -42,8 +43,6 @@ const LogSchema = new mongoose.Schema({
 });
 const Log = mongoose.model("Log", LogSchema);
 app.use(async (req, res, next) => {
-  const startTime = Date.now(); // Track request start time
-
   // Capture response status after request is handled
   res.on("finish", async () => {
     const logEntry = {
