@@ -13,7 +13,10 @@ console.log(MONGO_URI);
 
 // DB COnnection
 mongoose
-  .connect(MONGO_URI)
+  .connect(MONGO_URI, {
+    serverSelectionTimeoutMS: 10000, // 10 seconds timeout
+    socketTimeoutMS: 45000, // 45 seconds socket timeout
+  })
   .then(() => {
     console.log("Connected to MongoDB");
     console.log(`Database Details:
