@@ -26,6 +26,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/fake-person", (req, res) => {
+  console.log("Request received for /api/fake-person");
   const count = parseInt(req.query.count) || 1;
   const Person = Array.from({ length: count }, () => ({
     firstName: faker.person.firstName(),
@@ -41,6 +42,6 @@ app.get("/api/fake-person", (req, res) => {
     dateOfBirth: faker.date.birthdate({ min: 18, max: 65, mode: "age" }),
     avatar: faker.image.avatar(),
   }));
-
+  console.log("Sending response:", Person);
   res.json(Person);
 });
