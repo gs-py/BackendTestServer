@@ -14,7 +14,6 @@ const LogSchema = new mongoose.Schema({
   endpoint: String,
   timestamp: {
     type: Date,
-    type: Date,
     default: () => {
       // Convert UTC to IST by adding 5 hours and 30 minutes
       const now = new Date();
@@ -41,7 +40,7 @@ app.use((req, res, next) => {
     Log.create(logEntry).catch((err) => {
       console.error("Logging failed:", err);
     });
-
+    console.log(`req Header${req.headers.host}`);
     // Call the original end method
     originalEnd.apply(this, args);
   };
@@ -52,8 +51,11 @@ app.use((req, res, next) => {
 // Mongoose Connection
 mongoose
   .connect(MONGO_URI, {
+    // Remove retryWrites option
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // Reduced timeout
+    socketTimeoutMS: 45000, // Keep socket timeout
   })
   .then(() => console.log("Connected to MongoDB"))
   .catch((error) => console.error("MongoDB Connection Error:", error));
@@ -87,14 +89,18 @@ app.get("/api/fake-person", (req, res) => {
     dateOfBirth: faker.date.birthdate({ min: 18, max: 65, mode: "age" }),
     avatar: faker.image.avatar(),
   }));
+  console.log(`API Req \nCount : ${count}`);
   res.json(Person);
 });
 
-// Server Startup
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(
-    `server is Running on Port : ${process.env.PORT} \nURL : http://localhost:${process.env.PORT}/api/fake-person?count=1`
-  );
+});
+mongoose.connection.on("error", (err) => {
+  console.error("Mongoose connection error:", err);
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.log("Mongoose disconnected");
 });
