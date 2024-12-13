@@ -7,65 +7,61 @@ app.use(cors({ origin: "*" }));
 
 const { faker } = require("@faker-js/faker");
 const MONGO_URI = process.env.MONGO_URI;
-console.log(MONGO_URI);
 
-// DB Schema
-
-// DB COnnection
-mongoose
-  .connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 10000, // 10 seconds timeout
-    socketTimeoutMS: 45000, // 45 seconds socket timeout
-    retryWrites: true,
-  })
-  .then(() => {
-    console.log("Connected to MongoDB");
-    console.log(`Database Details:
-    Host: ${mongoose.connection.host}
-    Port: ${mongoose.connection.port}
-    Database Name: ${mongoose.connection.name}`);
-  })
-  .catch((error) => {
-    console.error("Error Occured", error);
-  });
-app.listen(process.env.PORT, () => {
-  console.log(process.env.PORT);
-  console.log(
-    `server is Running on Port : ${process.env.PORT} \nURL : http://localhost:${process.env.PORT}/api/fake-person?count=1`
-  );
-});
+// Simplified Log Schema
 const LogSchema = new mongoose.Schema({
   origin: String,
   endpoint: String,
-  timestamp: { type: Date, default: Date.now },
-  port: Number,
+  timestamp: {
+    type: Date,
+    type: Date,
+    default: () => {
+      // Convert UTC to IST by adding 5 hours and 30 minutes
+      const now = new Date();
+      return new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+    },
+  },
   status: Number,
 });
 const Log = mongoose.model("Log", LogSchema);
-app.use(async (req, res, next) => {
-  // Capture response status after request is handled
-  res.on("finish", async () => {
+
+// Simplified Logging Middleware
+app.use((req, res, next) => {
+  const originalEnd = res.end;
+
+  res.end = function (...args) {
+    // Create log entry
     const logEntry = {
-      origin: req.ip,
+      origin: req.ip || "unknown",
       endpoint: req.originalUrl,
-      timestamp: new Date(),
-      port: process.env.PORT,
-      status: res.statusCode, // Capture the status code
+      status: res.statusCode,
     };
 
-    try {
-      await Log.create(logEntry); // Save log to the database
-      console.log(`Logged API Call: ${JSON.stringify(logEntry)}`); // Log to console
-    } catch (error) {
-      console.error("Error logging API call:", error);
-    }
-  });
+    // Try to log without blocking
+    Log.create(logEntry).catch((err) => {
+      console.error("Logging failed:", err);
+    });
 
-  next(); // Proceed to next middleware or route
+    // Call the original end method
+    originalEnd.apply(this, args);
+  };
+
+  next();
 });
+
+// Mongoose Connection
+mongoose
+  .connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((error) => console.error("MongoDB Connection Error:", error));
+
+// Routes remain the same as in your original code
 app.get("/", (req, res) => {
   res.json({
-    mesaage: "welcome to my  Page",
+    message: "Welcome to my Page",
     about: "This is a simple homepage served via an API.",
     links: {
       about: "/about",
@@ -76,7 +72,6 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/fake-person", (req, res) => {
-  console.log("Request received for /api/fake-person");
   const count = parseInt(req.query.count) || 1;
   const Person = Array.from({ length: count }, () => ({
     firstName: faker.person.firstName(),
@@ -92,6 +87,14 @@ app.get("/api/fake-person", (req, res) => {
     dateOfBirth: faker.date.birthdate({ min: 18, max: 65, mode: "age" }),
     avatar: faker.image.avatar(),
   }));
-  console.log("Sending response:", Person);
   res.json(Person);
+});
+
+// Server Startup
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(
+    `server is Running on Port : ${process.env.PORT} \nURL : http://localhost:${process.env.PORT}/api/fake-person?count=1`
+  );
 });
